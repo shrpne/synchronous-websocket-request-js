@@ -1,9 +1,20 @@
 {
-  "name": "ws-sync-request",
+  "name": "@shrpne/ws-sync-request",
   "version": "1.0.20",
   "description": "Sync Ws request, like fetch",
   "main": "websocket-synchronous-request.js",
-  "scripts": {},
+  "types": "types/websocket-synchronous-request.d.ts",
+  "files": [
+    "websocket-synchronous-request.js",
+    "types/websocket-synchronous-request.d.ts"
+  ],
+  "scripts": {
+    "tsc:check": "tsc --project tsconfig.json",
+    "tsc:dts": "npm run tsc:modules || npm run tsc:legacy || echo 'types generated'",
+    "tsc:modules": "tsc --project tsconfig.json --noEmit false --declaration --emitDeclarationOnly --declarationDir types",
+    "tsc:legacy": "tsc --project tsconfig.json --noEmit false --declaration --emitDeclarationOnly --outFile types/types.d.ts",
+    "prepublishOnly": "npm run tsc:dts"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Puvox/synchronous-websocket-request-js"
@@ -14,5 +25,7 @@
     "url": "https://github.com/Puvox/synchronous-websocket-request-js/issues"
   },
   "homepage": "https://github.com/Puvox/synchronous-websocket-request-js#readme",
-  "dependencies": {}
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
 }

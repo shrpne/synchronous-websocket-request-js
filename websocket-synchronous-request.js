@@ -1,23 +1,27 @@
-const crypto = require('crypto').webcrypto;
+const crypto = globalThis.crypto;
 
 class ws_sync {
     waitedSyncCallbacks = {};
     waiterPrefix = "id";
     loopPauseWaitIntervalMS = 500;
 
+    /** @type {WebSocket} */
     wsc = null;
 
+    /**
+     * @param {WebSocket} ws_connection
+     */
     constructor (ws_connection) {
         this.wsc = ws_connection;
-        this.wsc.on('message', (payload)=>{
-            this.receivedMessage(payload);
+        this.wsc.addEventListener('message', (event)=>{
+            this.receivedMessage(event.data);
         })
     }
 
     // some random UUID like generator
     uuidv4() {
         return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-          (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
         );
     }
 
@@ -34,10 +38,10 @@ class ws_sync {
     cloneObjectDestructuve(orig){
         return Object.assign(Object.create(Object.getPrototypeOf(orig)), orig);
     }
-    
+
     isString(x) { return Object.prototype.toString.call(x) === "[object String]"; }
-	isInteger(x) { return Number.isInteger(x); }
-	isObject(variable){ return typeof variable === 'object' && variable !== null; }
+    isInteger(x) { return Number.isInteger(x); }
+    isObject(variable){ return typeof variable === 'object' && variable !== null; }
     isKeyType(x) { return this.isString(x) || this.isInteger(x); }
 
     send(data)
@@ -72,9 +76,9 @@ class ws_sync {
                 }
                 delete expectedObj.includeUniqueKey;
             }
-        } else { 
+        } else {
             throw new Error("WS SYNC FETCH: expectedObjectStructure argument must be 'null' or an object. Read more in package's readme");
-        } 
+        }
         this.waitedSyncCallbacks[uniqueId] = {
             'result': null,
             'onIncomingCallback': callbackOnIncoming,
@@ -82,7 +86,7 @@ class ws_sync {
         };
         const data_new = this.cloneObjectDestructuve (dataToSend);
         data_new[this.keyOfRequestId] = uniqueId;
-    
+
         const tracePhrase = " [ "+ uniqueId +"]" + JSON.stringify(dataToSend);
         if (this.send(data_new))
         {
@@ -103,14 +107,14 @@ class ws_sync {
                             delete this.waitedSyncCallbacks[uniqueId];
                             return { error: null, result: value['result'] };
                         }
-                    } 
+                    }
                     else {
                         var msg = "Unexpected exception, this should not be happening. The unique id does not exist." + tracePhrase;
                         return { error : msg, result : null };
                     }
                 }
             }
-        } 
+        }
         else {
             return { error : "Can not send request. Check if WS is connected." + tracePhrase, result : null };
         }
@@ -121,7 +125,7 @@ class ws_sync {
         let response = null;
         try {
             response = JSON.parse(fullPayload);
-        } 
+        }
         catch(exc)  {
             throw new Error("WS-fetch-synchronous package - could not parse JSON: " + fullPayload + " | " + exc.toString() );
         }
@@ -151,7 +155,7 @@ class ws_sync {
             }
             if (found) {
                 this.waitedSyncCallbacks[uniqId]['result'] = response;
-            } 
+            }
             if (!found || this.includeLastMatchForCallbacks){
                 // for incoming callback
                 // note, here the last cycle will be skiped, when `found` variable is true
